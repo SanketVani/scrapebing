@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bing Search</title>
+</head>
+<body>
+    <form method="POST">
+        <input type="text" name="query" placeholder="Enter search query">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for result in results %}
+            <li>
+                <a href="{{ result.url }}">{{ result.title }}</a><br>
+                {{ result.snippet }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
