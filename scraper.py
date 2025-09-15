@@ -78,7 +78,7 @@ async def scrape_page_and_save(url, unique_id):
         print(f"🌐 Crawling page: {url}")
         crawler = AsyncWebCrawler()
         response = await crawler.arun(url)
-        html = response.html
+        html = response.markdown
 
         if not html.strip():
             print(f"⚠️ Empty HTML content for URL: {url}")
@@ -92,7 +92,7 @@ async def scrape_page_and_save(url, unique_id):
             print(f"⚠️ No extractable text found in page: {url}")
             return
         os.makedirs("scraped_pages", exist_ok=True)
-        file_path = os.path.join("scraped_pages", f"{unique_id}.txt")
+        file_path = os.path.join("scraped_pages", f"{unique_id}.md")
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(text_content)
 
