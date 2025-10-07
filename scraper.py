@@ -8,7 +8,7 @@ from urllib.parse import quote_plus, urlparse, urlunparse, parse_qs, urlencode
 from bs4 import BeautifulSoup
 from crawl4ai import AsyncWebCrawler
 from models import SearchResult, get_session
-
+import re
 # Utility Functions
 
 def normalize_url(url):
@@ -95,10 +95,12 @@ async def scrape_search_results(query, page_number=1, seen_urls=None):
     except Exception as e:
         print(f"❌ Error fetching search results: {e}")
         return []
+def sanitize_folder_name(query):
+    return re.sub(r'[^a-zA-Z0-9_-]', '_', query).lower()
 
 # Step 2: Full Page Scraping
 
-async def scrape_full_page(url, unique_id, max_retries=3):
+async def scrape_full_page(url, unique_id, query, max_retries=2):
     crawler = AsyncWebCrawler()
     for attempt in range(1, max_retries + 1):
         try:
@@ -108,8 +110,11 @@ async def scrape_full_page(url, unique_id, max_retries=3):
             text = soup.get_text(separator="\n", strip=True)
 
             if text:
-                os.makedirs("scraped_pages", exist_ok=True)
-                path = os.path.join("scraped_pages", f"{unique_id}.md")
+                query_folder = sanitize_folder_name(query)
+                os.makedirs(f"scraped_pages/{query_folder}", exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{unique_id}_{timestamp}.md"
+                path = os.path.join("scraped_pages", query_folder, filename)
                 with open(path, 'w', encoding='utf-8') as f:
                     f.write(text)
                 print(f"✅ Page saved: {path}")
@@ -158,5 +163,5 @@ async def scrape_multiple_queries(queries):
     save_to_csv(all_results)
 
     # Crawl each full page
-    tasks = [scrape_full_page(item["url"], item["unique_id"]) for _, item in all_results]
+    tasks = [scrape_full_page(item["url"], item["unique_id"],query) for query, item in all_results]
     await asyncio.gather(*tasks)
